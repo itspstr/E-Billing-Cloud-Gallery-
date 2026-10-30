@@ -77,249 +77,26 @@
             box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
         }
 
-        /* PC Layout Fix: Allows scrolling on the left, keeps right sticky */
+        
         @media (min-width: 1024px) {
             .mobile-tabs { display: flex !important; max-width: 460px; margin-bottom: 12px; }
             .app-container {
                 display: grid;
                 grid-template-columns: 460px 1fr;
                 align-items: start;
-                grid-template-areas: "tabs preview" "form preview";
                 gap: 18px;
             }
-            .mobile-tabs { grid-area: tabs; }
-            #formTabContent { 
-                grid-area: form; 
-                display: block !important; 
-            }
-            #previewTabContent, #billsTabContent { 
-                grid-column: 2; 
-                grid-row: 1 / span 2; 
-            }
-            
-            /* Layout Magic to fix the PC Cutoff */
-            .dashboard-panel {
-                position: relative !important;
-                max-height: none !important;
-                overflow: visible !important;
-            }
-            
-            .preview-container, .bills-container {
-                position: sticky !important;
-                top: 16px !important;
-                max-height: calc(100vh - 32px) !important;
-                overflow-y: auto !important;
-            }
-            
             .invoice-sheet-wrapper {
                 min-height: auto;
             }
-        }
-
-        /* Control Panel */
-        .dashboard-panel {
-            background: var(--card-bg);
-            padding: 16px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-subtle);
-            border: 1px solid var(--border-light);
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            border-bottom: 2px solid var(--border-light);
-            padding-bottom: 8px;
-        }
-
-        .dashboard-header h2 {
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        .status-badge {
-            font-size: 10px;
-            background: #dbeafe;
-            color: #1e40af;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-
-        .form-section-title {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            margin: 12px 0 6px 0;
-            border-left: 3px solid var(--primary);
-            padding-left: 6px;
-        }
-
-        .form-group {
-            margin-bottom: 10px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            margin-bottom: 3px;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 9px 10px;
-            border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            outline: none;
-            background: #fff;
-            color: var(--text-main);
-        }
-
-        .form-group input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .checkbox-grid {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-
-        .checkbox-grid label {
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            background: #f8fafc;
-            padding: 7px 8px;
-            border-radius: var(--radius-sm);
-            border: 1.5px solid var(--border-color);
-            flex: 1;
-            min-width: 70px;
-            justify-content: center;
-            white-space: nowrap;
-        }
-
-        .checkbox-grid input[type="checkbox"] {
-            accent-color: var(--primary);
-            width: 14px;
-            height: 14px;
-            cursor: pointer;
-        }
-
-        .compact-radio-group {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-top: 5px;
-            justify-content: flex-start;
-        }
-
-        .compact-radio-group label {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            background: #f8fafc;
-            padding: 4px 10px;
-            border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            width: auto;
-        }
-
-        .compact-radio-group input[type="radio"] {
-            accent-color: var(--primary);
-            width: 12px;
-            height: 12px;
-            cursor: pointer;
-            margin: 0;
-        }
-
-        /* Action Buttons Box */
-        .sidebar-actions {
-            margin-top: 16px;
-            border-top: 2px solid var(--border-light);
-            padding-top: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: background 0.2s;
-            text-decoration: none;
-        }
-
-        .btn-primary { background-color: var(--primary); color: white; }
-        .btn-primary:hover { background-color: var(--primary-dark); }
-        .btn-success { background-color: #059669; color: white; }
-        .btn-success:hover { background-color: #047857; }
-        .btn-secondary { background-color: #475569; color: white; }
-        .btn-upload { background-color: #0284c7; color: white; }
-
-        /* Preview Area */
-        .preview-container {
-            background: var(--card-bg);
-            padding: 16px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-subtle);
-            border: 1px solid var(--border-light);
-            width: 100%;
-        }
-
-        .preview-header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            border-bottom: 2px solid var(--border-light);
-            padding-bottom: 8px;
-        }
-
-        .preview-header-bar h3 {
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .invoice-sheet-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 8px;
-        }
-
-        .tab-content {
-            display: block;
+            .dashboard-panel, .preview-container, .bills-container {
+                max-height: none;
+                overflow: visible;
+            }
+            /* Explicitly place elements */
+            .mobile-tabs { grid-column: 1; grid-row: 1; }
+            #formTabContent { grid-column: 1; grid-row: 2; display: block !important; }
+            #previewTabContent, #billsTabContent { grid-column: 2; grid-row: 1 / span 2; }
         }
         @media (max-width: 1023px) {
             .tab-content.hidden-mobile {
@@ -735,10 +512,16 @@ body{
 .app-container{
   max-width:1500px;
   margin:0 auto;
+  display:grid;
+  grid-template-columns:minmax(360px,430px) minmax(0,1fr);
+  gap:18px;
+  align-items:start;
 }
 
 /* Mobile navigation */
 .mobile-tabs{
+  grid-column:1/-1;
+  display:flex;
   background:rgba(255,255,255,.9);
   backdrop-filter:blur(12px);
   padding:5px;
@@ -746,6 +529,7 @@ body{
   border-radius:14px;
   gap:5px;
   position:relative;
+  top:10px;
   z-index:100;
   box-shadow:0 8px 25px rgba(15,23,42,.08);
 }
@@ -769,6 +553,7 @@ body{
 }
 
 .dashboard-panel{
+  /* Removed sticky positioning to fix bottom cut-off issues on PC */
   overflow:visible;
 }
 
@@ -892,7 +677,7 @@ body{
 .btn-primary{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
 .btn-success{background:linear-gradient(135deg,#059669,#047857)}
 .btn-secondary{background:linear-gradient(135deg,#475569,#334155)}
-.btn-upload{background:linear-gradient(135deg,#0284c7,#2563eb)}
+.btn-upload{background:linear-gradient(135deg,#0284c7,#0369a1)}
 
 /* Preview */
 .preview-container{
@@ -1148,6 +933,13 @@ body{
 .empty-bills strong{font-size:13px;color:#334155}
 .empty-bills span{font-size:11px;max-width:300px}
 
+@media(min-width:1024px){
+  #billsTabContent{
+    display:none;
+    grid-column:2;
+    min-height:calc(100vh - 32px);
+  }
+}
 @media(max-width:1023px){
   .bills-container{width:100%;padding:14px;border-radius:14px}
   .bills-header{align-items:flex-start}
@@ -1188,6 +980,10 @@ body{
   box-shadow:0 18px 55px rgba(15,23,42,.08),0 2px 8px rgba(15,23,42,.04);
 }
 
+.dashboard-panel{
+  overflow:visible;
+}
+
 .dashboard-header{
   position:relative;
   overflow:hidden;
@@ -1225,6 +1021,8 @@ body{
 }
 
 .mobile-tabs{
+  padding:5px;
+  gap:5px;
   background:rgba(255,255,255,.78);
   border:1px solid rgba(255,255,255,.9);
   backdrop-filter:blur(18px);
@@ -1418,6 +1216,9 @@ body{
 }
 </style>
 
+
+
+
 </head>
 <body>
 
@@ -1473,10 +1274,10 @@ body{
 
             <div class="form-group">
                 <label style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>Mobile Number</span>
+                    <span>Mobile Number (Max 10 Digits)</span>
                     <button type="button" class="btn" style="background:#e0e7ff; color:#1e3a8a; border:1px solid #c7d2fe; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; height:auto; width:auto; min-height:auto;" onclick="importContact()">📱 Import</button>
                 </label>
-                <input type="text" id="inputPhone" placeholder="Enter mobile no." list="phoneList" oninput="updateInvoice(); saveToLocalStorage();" autocomplete="off" autocorrect="off" spellcheck="false">
+                <input type="text" id="inputPhone" placeholder="10-digit mobile no." maxlength="10" list="phoneList" oninput="validatePhone(this); updateInvoice(); saveToLocalStorage();" autocomplete="off" autocorrect="off" spellcheck="false">
                 <datalist id="phoneList"></datalist>
             </div>
 
@@ -1608,7 +1409,7 @@ body{
         </div>
 
         <!-- My Bills History -->
-        <div class="bills-container tab-content" style="display:none;" id="billsTabContent">
+        <div class="bills-container tab-content" id="billsTabContent">
             <div class="bills-header">
                 <div>
                     <div class="bills-eyebrow">BILLING HISTORY</div>
@@ -1642,7 +1443,7 @@ body{
         </div>
 
         <!-- Live Preview Area -->
-        <div class="preview-container tab-content" style="display:none;" id="previewTabContent">
+        <div class="preview-container tab-content" id="previewTabContent">
             <div class="preview-header-bar">
                 <h3>Live Invoice Preview (A4 Format)</h3>
                 <span class="status-badge" style="background:#ecfdf5; color:#047857; border-color:#bbf7d0;">Ready to Print</span>
@@ -1836,9 +1637,8 @@ body{
     </div>
 
     <script>
-        // UPDATE WITH YOUR APPS SCRIPT URL HERE!
-        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzJuoFwPTSJ-ntK93SP1tdEIss78qcuNP3VPSKfdahI6D6aJk4jeZxk2WO-zUU4eQbD/exec";
-        
+
+        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw-DnEeDM9uyf3ym4vFconkxv_sWIjwpWfok_S2qqdxfhHv2O1hiQZcCTLZMw83JiqS/exec";
         window.cloudBills = [];
         window.isManageMode = false;
 
@@ -1898,64 +1698,61 @@ body{
                 document.getElementById('formTabContent').style.display = 'block';
                 document.getElementById('tabFormBtn').classList.add('active');
             }
+
         });
 
+        
+        
         function switchTab(tabName) {
-            const formTab = document.getElementById('formTabContent');
-            const previewTab = document.getElementById('previewTabContent');
-            const billsTab = document.getElementById('billsTabContent');
             const tabFormBtn = document.getElementById('tabFormBtn');
             const tabPreviewBtn = document.getElementById('tabPreviewBtn');
             const tabBillsBtn = document.getElementById('tabBillsBtn');
+            const formTab = document.getElementById('formTabContent');
+            const previewTab = document.getElementById('previewTabContent');
+            const billsTab = document.getElementById('billsTabContent');
 
-            // Remove active classes
-            [tabFormBtn, tabPreviewBtn, tabBillsBtn].forEach(el => {
-                if (el) el.classList.remove('active');
-            });
+            // Reset buttons
+            [tabFormBtn, tabPreviewBtn, tabBillsBtn].forEach(btn => btn && btn.classList.remove('active'));
 
             if (window.innerWidth >= 1024) {
-                // DESKTOP: Form is always visible. We just swap Preview and Bills on the right.
-                if (formTab) formTab.style.display = 'block';
+                // Desktop: Form is fixed. Switch right panel.
+                if (formTab) formTab.style.display = ''; // Let CSS handle it
                 
                 if (tabName === 'bills') {
-                    if(previewTab) previewTab.style.display = 'none';
-                    if(billsTab) billsTab.style.display = 'block';
-                    if(tabBillsBtn) tabBillsBtn.classList.add('active');
-                    renderBillHistory();
-                } else { // Default to preview
-                    if(billsTab) billsTab.style.display = 'none';
-                    if(previewTab) previewTab.style.display = 'block';
-                    if(tabPreviewBtn) tabPreviewBtn.classList.add('active');
+                    if (tabBillsBtn) tabBillsBtn.classList.add('active');
+                    if (previewTab) previewTab.style.display = 'none';
+                    if (billsTab) { billsTab.style.display = 'block'; renderBillHistory(); }
+                } else {
+                    if (tabPreviewBtn) tabPreviewBtn.classList.add('active');
+                    if (billsTab) billsTab.style.display = 'none';
+                    if (previewTab) previewTab.style.display = 'block';
                 }
             } else {
-                // MOBILE: Strictly show ONLY ONE tab at a time
-                [formTab, previewTab, billsTab].forEach(el => {
-                    if (el) el.style.display = 'none';
-                });
-                
+                // Mobile: Only one visible
+                [formTab, previewTab, billsTab].forEach(tab => tab && (tab.style.display = 'none'));
+
                 if (tabName === 'form') {
-                    if(formTab) formTab.style.display = 'block';
-                    if(tabFormBtn) tabFormBtn.classList.add('active');
+                    if (tabFormBtn) tabFormBtn.classList.add('active');
+                    if (formTab) formTab.style.display = 'block';
                 } else if (tabName === 'preview') {
-                    if(previewTab) previewTab.style.display = 'block';
-                    if(tabPreviewBtn) tabPreviewBtn.classList.add('active');
+                    if (tabPreviewBtn) tabPreviewBtn.classList.add('active');
+                    if (previewTab) previewTab.style.display = 'block';
                 } else if (tabName === 'bills') {
-                    if(billsTab) billsTab.style.display = 'block';
-                    if(tabBillsBtn) tabBillsBtn.classList.add('active');
-                    renderBillHistory();
+                    if (tabBillsBtn) tabBillsBtn.classList.add('active');
+                    if (billsTab) { billsTab.style.display = 'block'; renderBillHistory(); }
                 }
             }
         }
-        
+
         window.addEventListener('resize', () => {
-            // Force layout recalculation on resize
-            const tabBillsBtn = document.getElementById('tabBillsBtn');
-            if (tabBillsBtn && tabBillsBtn.classList.contains('active')) {
-                switchTab('bills');
+            const activeBtn = document.querySelector('.tab-btn.active');
+            if (activeBtn) {
+                switchTab(activeBtn.id.replace('tab', '').replace('Btn', '').toLowerCase());
             } else {
                 switchTab(window.innerWidth >= 1024 ? 'preview' : 'form');
             }
         });
+
 
         function updateInvoice() {
             document.getElementById('previewBillNo').innerText = document.getElementById('inputBillNo').value || '308';
@@ -2129,11 +1926,11 @@ body{
                 rate1: bill.rate1, rate2: bill.rate2, discount: bill.discount
             };
             
-            // Bypass CORS restrictions for syncing logic
-            fetch(GOOGLE_SHEET_URL, { 
-                method: "POST", 
+            fetch(GOOGLE_SHEET_URL, {
+                method: "POST",
+                mode: "no-cors",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload) 
+                body: JSON.stringify(payload)
             }).catch(e => console.log(e));
         }
 
@@ -2141,18 +1938,22 @@ body{
             saveBillToHistory();
             switchTab('preview');
             
+            // Force document body to allow overflow just for printing
+            document.body.style.overflow = 'visible';
+            
             setTimeout(() => { 
                 window.print(); 
                 
                 // Only increment counter AFTER the print dialog is closed or processing
                 setTimeout(() => {
+                    document.body.style.overflow = '';
                     let currentBill = parseInt(document.getElementById('inputBillNo').value) || 308;
                     document.getElementById('inputBillNo').value = currentBill + 1;
                     updateInvoice();
                     saveToLocalStorage();
                     if(typeof showToast === 'function') showToast("Bill Printed! Counter moved to " + (currentBill + 1));
                 }, 1000);
-            }, 1000); // Allow UI sufficient time to render before invoking print
+            }, 600);
         }
 
         function downloadInvoiceImage() {
@@ -2164,12 +1965,14 @@ body{
             // Switch to preview tab and force full width for perfect rendering
             switchTab('preview');
             
-            if(typeof showToast === 'function') showToast("⏳ Generating PDF Image...");
-            
             // Give the browser time to paint the UI
             setTimeout(() => {
+                // Store original styles to revert later
                 const originalTransform = sheet.style.transform;
+                const originalOverflow = document.body.style.overflow;
+                
                 sheet.style.transform = 'none'; // Ensure no scaling affects the canvas
+                document.body.style.overflow = 'visible'; // Ensure no container clipping
                 
                 html2canvas(sheet, { 
                     scale: 3, 
@@ -2179,7 +1982,9 @@ body{
                     windowWidth: sheet.scrollWidth,
                     windowHeight: sheet.scrollHeight
                 }).then(canvas => {
+                    // Revert styles
                     sheet.style.transform = originalTransform;
+                    document.body.style.overflow = originalOverflow;
                     
                     const link = document.createElement('a');
                     link.download = `Bill_${billNo}_${name}.png`;
@@ -2190,9 +1995,9 @@ body{
                     document.getElementById('inputBillNo').value = currentBill + 1;
                     updateInvoice();
                     saveToLocalStorage();
-                    if(typeof showToast === 'function') showToast("✅ PDF Saved! Counter moved to " + (currentBill + 1));
+                    if(typeof showToast === 'function') showToast("PDF Saved! Counter moved to " + (currentBill + 1));
                 });
-            }, 1000);
+            }, 600);
         }
 
         function printFromHistory(id) {
@@ -2292,7 +2097,7 @@ body{
             setTimeout(() => {
                 const sheet = document.getElementById('invoiceSheet');
                 html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false }).then(canvas => {
-                    const base64Data = canvas.toDataURL('image/png');
+                    const base64Data = canvas.toDataURL('image/png').split(',')[1];
                     const filename = `Bill_${bill.billNo}_${bill.name || 'Customer'}.png`;
                     
                     const payload = {
@@ -2303,22 +2108,31 @@ body{
 
                     fetch(GOOGLE_SHEET_URL, {
                         method: "POST",
-                        headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify(payload),
+                        headers: { "Content-Type": "text/plain;charset=utf-8" }
                     })
                     .then(res => res.json())
                     .then(resData => {
                         if(ind) {
                             ind.style.display = 'none';
-                            ind.innerHTML = '<span style="display:inline-block; animation: spin 2s linear infinite;">🔄</span> Syncing live data from cloud...';
+                            ind.innerHTML = '<span style="display:inline-block; animation: spin 2s linear infinite;">🔄</span> Syncing live data from cloud...'; // Reset text
                         }
                         if (resData.url) {
                             if(typeof showToast === 'function') showToast("✅ Uploaded! Opening WhatsApp...");
-                            let text = `*☁️ CLOUD GALLERY MEERUT*\n\n`;
-                            text += `Hello ${bill.name || 'Customer'},\n`;
-                            text += `Here is your E-Bill (No. ${bill.billNo}) for the ${bill.model || 'mobile'}.\n\n`;
-                            text += `*📥 View & Download your Bill here:*\n${resData.url}\n\n`;
-                            text += `Thank you for shopping with us!\n`;
+                            let text = `*☁️ CLOUD GALLERY MEERUT*
+
+`;
+                            text += `Hello ${bill.name || 'Customer'},
+`;
+                            text += `Here is your E-Bill (No. ${bill.billNo}) for the ${bill.model || 'mobile'}.
+
+`;
+                            text += `*📥 View & Download your Bill here:*
+${resData.url}
+
+`;
+                            text += `Thank you for shopping with us!
+Follow us on Instagram: @cloudgallerymeerut`;
                             
                             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
                         } else {
@@ -2330,7 +2144,7 @@ body{
                         if(typeof showToast === 'function') showToast("❌ Cloud Upload Error!");
                     });
                 });
-            }, 1000);
+            }, 600);
         }
 
         function formatHistoryDate(value) {
@@ -2402,6 +2216,7 @@ body{
                 
                 fetch(GOOGLE_SHEET_URL, { 
                     method: "POST", 
+                    mode: "no-cors",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({ action: "delete", billNo: bill.billNo })
                 }).then(() => {
