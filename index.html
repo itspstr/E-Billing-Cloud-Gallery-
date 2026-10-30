@@ -77,13 +77,13 @@
             box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
         }
 
-        
         @media (min-width: 1024px) {
             .mobile-tabs { display: flex !important; max-width: 460px; margin-bottom: 12px; }
             .app-container {
                 display: grid;
                 grid-template-columns: 460px 1fr;
                 align-items: start;
+                grid-template-areas: "tabs preview" "form preview";
                 gap: 18px;
             }
             .invoice-sheet-wrapper {
@@ -93,9 +93,8 @@
                 max-height: none;
                 overflow: visible;
             }
-            /* Explicitly place elements */
-            .mobile-tabs { grid-column: 1; grid-row: 1; }
-            #formTabContent { grid-column: 1; grid-row: 2; display: block !important; }
+            .mobile-tabs { grid-area: tabs; }
+            #formTabContent { grid-area: form; display: block !important; }
             #previewTabContent, #billsTabContent { grid-column: 2; grid-row: 1 / span 2; }
         }
         @media (max-width: 1023px) {
@@ -1638,7 +1637,7 @@ body{
 
     <script>
 
-        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw-DnEeDM9uyf3ym4vFconkxv_sWIjwpWfok_S2qqdxfhHv2O1hiQZcCTLZMw83JiqS/exec";
+        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzn-ptqvFao_EqIKXVzlcxBuxQzcG_0Rwq9_iTvxcTKlgj9cTzqhu1hne791uUH4Zym/exec";
         window.cloudBills = [];
         window.isManageMode = false;
 
@@ -1701,59 +1700,62 @@ body{
 
         });
 
-        
-        
         function switchTab(tabName) {
-            const tabFormBtn = document.getElementById('tabFormBtn');
-            const tabPreviewBtn = document.getElementById('tabPreviewBtn');
-            const tabBillsBtn = document.getElementById('tabBillsBtn');
             const formTab = document.getElementById('formTabContent');
             const previewTab = document.getElementById('previewTabContent');
             const billsTab = document.getElementById('billsTabContent');
+            const tabFormBtn = document.getElementById('tabFormBtn');
+            const tabPreviewBtn = document.getElementById('tabPreviewBtn');
+            const tabBillsBtn = document.getElementById('tabBillsBtn');
 
-            // Reset buttons
-            [tabFormBtn, tabPreviewBtn, tabBillsBtn].forEach(btn => btn && btn.classList.remove('active'));
+            // Remove active classes
+            [tabFormBtn, tabPreviewBtn, tabBillsBtn].forEach(el => {
+                if (el) el.classList.remove('active');
+            });
 
             if (window.innerWidth >= 1024) {
-                // Desktop: Form is fixed. Switch right panel.
-                if (formTab) formTab.style.display = ''; // Let CSS handle it
+                // DESKTOP: Form is always visible. We just swap Preview and Bills on the right.
+                if (formTab) formTab.style.display = 'block';
                 
                 if (tabName === 'bills') {
-                    if (tabBillsBtn) tabBillsBtn.classList.add('active');
-                    if (previewTab) previewTab.style.display = 'none';
-                    if (billsTab) { billsTab.style.display = 'block'; renderBillHistory(); }
-                } else {
-                    if (tabPreviewBtn) tabPreviewBtn.classList.add('active');
-                    if (billsTab) billsTab.style.display = 'none';
-                    if (previewTab) previewTab.style.display = 'block';
+                    if(previewTab) previewTab.style.display = 'none';
+                    if(billsTab) billsTab.style.display = 'block';
+                    if(tabBillsBtn) tabBillsBtn.classList.add('active');
+                    renderBillHistory();
+                } else { // Default to preview
+                    if(billsTab) billsTab.style.display = 'none';
+                    if(previewTab) previewTab.style.display = 'block';
+                    if(tabPreviewBtn) tabPreviewBtn.classList.add('active');
                 }
             } else {
-                // Mobile: Only one visible
-                [formTab, previewTab, billsTab].forEach(tab => tab && (tab.style.display = 'none'));
-
+                // MOBILE: Strictly show ONLY ONE tab at a time
+                [formTab, previewTab, billsTab].forEach(el => {
+                    if (el) el.style.display = 'none';
+                });
+                
                 if (tabName === 'form') {
-                    if (tabFormBtn) tabFormBtn.classList.add('active');
-                    if (formTab) formTab.style.display = 'block';
+                    if(formTab) formTab.style.display = 'block';
+                    if(tabFormBtn) tabFormBtn.classList.add('active');
                 } else if (tabName === 'preview') {
-                    if (tabPreviewBtn) tabPreviewBtn.classList.add('active');
-                    if (previewTab) previewTab.style.display = 'block';
+                    if(previewTab) previewTab.style.display = 'block';
+                    if(tabPreviewBtn) tabPreviewBtn.classList.add('active');
                 } else if (tabName === 'bills') {
-                    if (tabBillsBtn) tabBillsBtn.classList.add('active');
-                    if (billsTab) { billsTab.style.display = 'block'; renderBillHistory(); }
+                    if(billsTab) billsTab.style.display = 'block';
+                    if(tabBillsBtn) tabBillsBtn.classList.add('active');
+                    renderBillHistory();
                 }
             }
         }
-
+        
         window.addEventListener('resize', () => {
-            const activeBtn = document.querySelector('.tab-btn.active');
-            if (activeBtn) {
-                switchTab(activeBtn.id.replace('tab', '').replace('Btn', '').toLowerCase());
+            // Force layout recalculation on resize
+            const tabBillsBtn = document.getElementById('tabBillsBtn');
+            if (tabBillsBtn && tabBillsBtn.classList.contains('active')) {
+                switchTab('bills');
             } else {
                 switchTab(window.innerWidth >= 1024 ? 'preview' : 'form');
             }
         });
-
-
         function updateInvoice() {
             document.getElementById('previewBillNo').innerText = document.getElementById('inputBillNo').value || '308';
             document.getElementById('previewDate').innerText = document.getElementById('inputDate').value;
@@ -1926,11 +1928,15 @@ body{
                 rate1: bill.rate1, rate2: bill.rate2, discount: bill.discount
             };
             
-            fetch(GOOGLE_SHEET_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
+            fetch(GOOGLE_SHEET_URL, { 
+                method: "POST", 
+                mode: "no-cors", // Bypasses browser CORS blocks entirely
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
                 body: JSON.stringify(payload)
+            }).then(() => {
+                // Data pushed successfully
             }).catch(e => console.log(e));
         }
 
