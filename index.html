@@ -746,11 +746,9 @@ body{
 }
 
 .dashboard-panel{
-  position:sticky;
-  top:16px;
-  max-height:calc(100vh - 32px);
-  overflow:auto;
-  scrollbar-width:thin;
+  position:relative;
+  height:max-content;
+  overflow:visible;
 }
 
 .dashboard-panel::-webkit-scrollbar{width:7px}
@@ -879,7 +877,14 @@ body{
 .preview-container{
   min-width:0;
   padding:20px;
+  position:sticky;
+  top:16px;
+  max-height:calc(100vh - 32px);
+  overflow:auto;
 }
+.preview-container::-webkit-scrollbar { width: 7px; }
+.preview-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
+
 .preview-header-bar{
   margin-bottom:16px;
   padding:0 2px 13px;
@@ -1834,7 +1839,7 @@ body{
 
     <script>
 
-        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw-DnEeDM9uyf3ym4vFconkxv_sWIjwpWfok_S2qqdxfhHv2O1hiQZcCTLZMw83JiqS/exec";
+        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyPcpSlbccXZm7kr_p_DcfvXiYkuCy4x9205YE7j6Dh2llZFrei0vCaPryN01GarIpTQw/exec";
         window.cloudBills = [];
         window.isManageMode = false;
 
@@ -2208,32 +2213,61 @@ body{
             const bill = history.find(x => x.id === id);
             if (!bill) return;
 
-            let text = `*☁️ CLOUD GALLERY MEERUT*\n`;
-            text += `_🧾 E-Bill Details_\n\n`;
-            text += `*Bill No:* ${bill.billNo}\n`;
-            text += `*Date:* ${formatHistoryDate(bill.date)}\n`;
-            text += `*Customer Name:* ${bill.name || 'Walk-in'}\n`;
-            if (bill.phone) text += `*Mobile:* ${bill.phone}\n`;
-            if (bill.address) text += `*Address:* ${bill.address}\n\n`;
+            // Switch to preview tab so html2canvas works
+            switchTab('preview');
             
-            text += `*📱 Mobile Details:* ${bill.model || 'N/A'}\n`;
-            if (bill.gb) text += `*Storage:* ${bill.gb}\n`;
-            if (bill.battery) text += `*Battery Health:* ${bill.battery}\n`;
-            
-            text += `*📦 Box Included:* ${bill.box || 'No'}\n`;
-            if (bill.accessories) text += `*Accessories:* ${bill.accessories}\n`;
-            
-            if (bill.imei1) text += `*IMEI 1:* ${bill.imei1}\n`;
-            if (bill.imei2) text += `*IMEI 2:* ${bill.imei2}\n`;
-            if (bill.serialNumber) text += `*Serial No:* ${bill.serialNumber}\n\n`;
-            
-            text += `*💰 Grand Total:* ₹${Number(bill.grandTotal || 0).toFixed(2)}\n`;
-            if (bill.payModes && bill.payModes.length > 0) text += `*Payment Mode:* ${bill.payModes.join(', ')}\n\n`;
-            
-            text += `Thank you for shopping with us!\n`;
-            text += `Follow us on Instagram: @cloudgallerymeerut`;
+            var ind = document.getElementById('syncIndicator');
+            if(ind) {
+                ind.innerHTML = '<span style="display:inline-block; animation: spin 2s linear infinite;">🔄</span> Generating & Uploading Bill to Cloud...';
+                ind.style.display = 'block';
+            }
 
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+            setTimeout(() => {
+                const sheet = document.getElementById('invoiceSheet');
+                html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false }).then(canvas => {
+                    const base64Data = canvas.toDataURL('image/png', 1.0);
+                    const filename = `Bill_${bill.billNo}_${bill.name || 'Customer'}.png`;
+
+                    fetch(GOOGLE_SHEET_URL, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            action: "upload_image",
+                            filename: filename,
+                            base64: base64Data
+                        }),
+                        headers: { "Content-Type": "text/plain;charset=utf-8" }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (ind) ind.style.display = 'none';
+                        if (data && data.url) {
+                            let text = `*☁️ CLOUD GALLERY MEERUT*
+
+`;
+                            text += `Hello ${bill.name || 'Customer'},
+`;
+                            text += `Here is your E-Bill (No. ${bill.billNo}) for the ${bill.model || 'mobile'}.
+
+`;
+                            text += `*📥 View & Download your Bill here:*
+${data.url}
+
+`;
+                            text += `Thank you for shopping with us!
+`;
+                            text += `Follow us on Instagram: @cloudgallerymeerut`;
+
+                            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+                        } else {
+                            if(typeof showToast === 'function') showToast("⚠️ Failed to upload bill to cloud.");
+                        }
+                    })
+                    .catch(e => {
+                        if (ind) ind.style.display = 'none';
+                        if(typeof showToast === 'function') showToast("⚠️ Error uploading bill. Check connection.");
+                    });
+                });
+            }, 500);
         }
 
         function formatHistoryDate(value) {
