@@ -77,6 +77,8 @@
             box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
         }
 
+        
+        
         @media (min-width: 1024px) {
             .mobile-tabs { display: flex !important; max-width: 460px; margin-bottom: 12px; }
             .app-container {
@@ -94,6 +96,8 @@
                 overflow: visible !important;
             }
             .mobile-tabs { grid-area: tabs; }
+            
+            /* FORCE DISPLAY */
             #formTabContent { grid-area: form; display: block !important; }
             #previewTabContent.active-desktop, #billsTabContent.active-desktop { 
                 grid-column: 2; 
@@ -104,6 +108,7 @@
                 display: none !important;
             }
         }
+
         @media (max-width: 1023px) {
             .tab-content.hidden-mobile {
                 display: none !important;
@@ -1415,7 +1420,7 @@ body{
         </div>
 
         <!-- My Bills History -->
-        <div class="bills-container tab-content" id="billsTabContent">
+        <div class="bills-container tab-content" style="display:none;" id="billsTabContent">
             <div class="bills-header">
                 <div>
                     <div class="bills-eyebrow">BILLING HISTORY</div>
@@ -1449,7 +1454,7 @@ body{
         </div>
 
         <!-- Live Preview Area -->
-        <div class="preview-container tab-content" id="previewTabContent">
+        <div class="preview-container tab-content" style="display:none;" id="previewTabContent">
             <div class="preview-header-bar">
                 <h3>Live Invoice Preview (A4 Format)</h3>
                 <span class="status-badge" style="background:#ecfdf5; color:#047857; border-color:#bbf7d0;">Ready to Print</span>
@@ -1644,7 +1649,7 @@ body{
 
     <script>
 
-        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw-DnEeDM9uyf3ym4vFconkxv_sWIjwpWfok_S2qqdxfhHv2O1hiQZcCTLZMw83JiqS/exec";
+        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycby4TIi7i7L4dv1VqljC32u0T6m7bBzJ411G6d1kNxxjFi21XxZmfWNC-oYyNj_r-0_T/exec";
         window.cloudBills = [];
         window.isManageMode = false;
 
@@ -1691,33 +1696,38 @@ body{
             if (urlParams.has('acc')) document.getElementById('inputAccessories').value = urlParams.get('acc');
 
             
-            
             updateInvoice();
             calculateTotals();
             fetchCloudBills();
             
             // Set initial tab state based on screen size
             if(window.innerWidth >= 1024) {
-                switchTab('preview');
+                document.getElementById('formTabContent').style.display = 'block';
+                document.getElementById('previewTabContent').style.display = 'block';
+                document.getElementById('tabPreviewBtn').classList.add('active');
             } else {
-                switchTab('form');
+                document.getElementById('formTabContent').style.display = 'block';
+                document.getElementById('tabFormBtn').classList.add('active');
             }
+
         });
 
+        
+        
         function switchTab(tabName, forceMobile = false) {
-            const tabFormBtn = document.getElementById('tabFormBtn');
-            const tabPreviewBtn = document.getElementById('tabPreviewBtn');
-            const tabBillsBtn = document.getElementById('tabBillsBtn');
             const formTab = document.getElementById('formTabContent');
             const previewTab = document.getElementById('previewTabContent');
             const billsTab = document.getElementById('billsTabContent');
+            const tabFormBtn = document.getElementById('tabFormBtn');
+            const tabPreviewBtn = document.getElementById('tabPreviewBtn');
+            const tabBillsBtn = document.getElementById('tabBillsBtn');
 
             // Reset buttons
             [tabFormBtn, tabPreviewBtn, tabBillsBtn].forEach(btn => btn && btn.classList.remove('active'));
 
             if (window.innerWidth >= 1024 && !forceMobile) {
-                // DESKTOP: Form is always visible. We just swap Preview and Bills on the right.
-                if (formTab) formTab.style.display = ''; // Let CSS handle it
+                // Desktop Mode
+                if (formTab) formTab.style.display = ''; // Handled by CSS !important
                 
                 if (tabName === 'bills') {
                     if (tabBillsBtn) tabBillsBtn.classList.add('active');
@@ -1726,14 +1736,16 @@ body{
                         billsTab.classList.add('active-desktop');
                         renderBillHistory(); 
                     }
-                } else { // Default to preview
+                } else {
                     if (tabPreviewBtn) tabPreviewBtn.classList.add('active');
                     if (billsTab) billsTab.classList.remove('active-desktop');
                     if (previewTab) previewTab.classList.add('active-desktop');
                 }
             } else {
-                // MOBILE: Strictly show ONLY ONE tab at a time
+                // Mobile Mode
                 [formTab, previewTab, billsTab].forEach(tab => tab && (tab.style.display = 'none'));
+                if (previewTab) previewTab.classList.remove('active-desktop');
+                if (billsTab) billsTab.classList.remove('active-desktop');
 
                 if (tabName === 'form') {
                     if (tabFormBtn) tabFormBtn.classList.add('active');
@@ -1831,8 +1843,54 @@ body{
             renderBillHistory();
         }
 
-        function fetchCloudBills\(\) \{...\
+        function fetchCloudBills() {
+            var ind = document.getElementById('syncIndicator');
+            if(ind) ind.style.display = 'block';
+            
+            // Unique callback name for JSONP to bypass CORS on Incognito
+            const cbName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+            
+            window[cbName] = function(data) {
+                if (data && data.nextBillNo) {
+                    let currentVal = document.getElementById('inputBillNo').value;
+                    if (currentVal === "308" || currentVal === "Loading..." || currentVal === "") {
+                        document.getElementById('inputBillNo').value = data.nextBillNo;
+                        updateInvoice();
+                    }
+                }
+                if (data && data.bills && Array.isArray(data.bills)) {
+                    const history = getBillHistory();
+                    data.bills.forEach(cloudBill => {
+                        const index = history.findIndex(x => String(x.billNo) === String(cloudBill.billNo));
+                        if (index === -1) history.push(cloudBill);
+                    });
+                    history.sort((a,b) => parseInt(b.billNo) - parseInt(a.billNo));
+                    localStorage.setItem('cloudGalleryBillHistory', JSON.stringify(history.slice(0, 100)));
+                    window.cloudBills = history; 
+                    renderBillHistory();
+                }
+                
+                if(ind) ind.style.display = 'none';
+                delete window[cbName];
+                document.body.removeChild(script);
+            };
 
+            const script = document.createElement('script');
+            script.src = GOOGLE_SHEET_URL + "?callback=" + cbName + "&t=" + new Date().getTime();
+            script.onerror = function() {
+                let currentBill = document.getElementById('inputBillNo').value;
+                if (currentBill === "Loading..." || currentBill === "") {
+                     document.getElementById('inputBillNo').value = "308";
+                     updateInvoice();
+                }
+                if(ind) ind.style.display = 'none';
+                delete window[cbName];
+                document.body.removeChild(script);
+            };
+            document.body.appendChild(script);
+        }
+        }
+        
         function getBillHistory() {
             try { return JSON.parse(localStorage.getItem('cloudGalleryBillHistory') || '[]'); } 
             catch (e) { return []; }
@@ -1895,15 +1953,297 @@ body{
                 rate1: bill.rate1, rate2: bill.rate2, discount: bill.discount
             };
             
-            fetch(GOOGLE_SHEET_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: JSON.stringify({ action: "delete", billNo: bill.billNo })
+            fetch(GOOGLE_SHEET_URL, { method: "POST", body: JSON.stringify(payload) })
+            .catch(e => console.log(e));
+        }
+
+        function triggerPrint() {
+            saveBillToHistory();
+            switchTab('preview');
+            
+            // Force document body to allow overflow just for printing
+            document.body.style.overflow = 'visible';
+            
+            setTimeout(() => { 
+                window.print(); 
+                
+                // Only increment counter AFTER the print dialog is closed or processing
+                setTimeout(() => {
+                    document.body.style.overflow = '';
+                    let currentBill = parseInt(document.getElementById('inputBillNo').value) || 308;
+                    document.getElementById('inputBillNo').value = currentBill + 1;
+                    updateInvoice();
+                    saveToLocalStorage();
+                    if(typeof showToast === 'function') showToast("Bill Printed! Counter moved to " + (currentBill + 1));
+                }, 1000);
+            }, 600);
+        }
+
+        function downloadInvoiceImage() {
+            saveBillToHistory();
+            const sheet = document.getElementById('invoiceSheet');
+            const billNo = document.getElementById('inputBillNo').value || '308';
+            const name = document.getElementById('inputName').value || 'Customer';
+            
+            // Switch to preview tab and force full width for perfect rendering
+            switchTab('preview');
+            
+            // Give the browser time to paint the UI
+            setTimeout(() => {
+                // Store original styles to revert later
+                const originalTransform = sheet.style.transform;
+                const originalOverflow = document.body.style.overflow;
+                
+                sheet.style.transform = 'none'; // Ensure no scaling affects the canvas
+                document.body.style.overflow = 'visible'; // Ensure no container clipping
+                
+                html2canvas(sheet, { 
+                    scale: 3, 
+                    useCORS: true, 
+                    backgroundColor: '#ffffff', 
+                    logging: false,
+                    windowWidth: sheet.scrollWidth,
+                    windowHeight: sheet.scrollHeight
+                }).then(canvas => {
+                    // Revert styles
+                    sheet.style.transform = originalTransform;
+                    document.body.style.overflow = originalOverflow;
+                    
+                    const link = document.createElement('a');
+                    link.download = `Bill_${billNo}_${name}.png`;
+                    link.href = canvas.toDataURL('image/png', 1.0);
+                    link.click();
+                    
+                    let currentBill = parseInt(document.getElementById('inputBillNo').value) || 308;
+                    document.getElementById('inputBillNo').value = currentBill + 1;
+                    updateInvoice();
+                    saveToLocalStorage();
+                    if(typeof showToast === 'function') showToast("PDF Saved! Counter moved to " + (currentBill + 1));
+                });
+            }, 600);
+        }
+
+        function printFromHistory(id) {
+            loadBillFromHistory(id);
+            setTimeout(() => { triggerPrint(); }, 500);
+        }
+
+        function downloadFromHistory(id) {
+            loadBillFromHistory(id);
+            setTimeout(() => { downloadInvoiceImage(); }, 500);
+        }
+
+        function handleSignatureUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('customSigImg');
+                    const svg = document.getElementById('defaultSigSvg');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    svg.style.display = 'none';
+                    saveToLocalStorage();
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function renderBillHistory() {
+            const container = document.getElementById('billHistoryList');
+            if (!container) return;
+
+            const query = (document.getElementById('billHistorySearch')?.value || '').trim().toLowerCase();
+            const history = window.cloudBills && window.cloudBills.length > 0 ? window.cloudBills : getBillHistory();
+            
+            const filtered = history.filter(bill => {
+                if (!query) return true;
+                return [
+                    bill.billNo, bill.name, bill.phone, bill.model, bill.date
+                ].some(value => String(value || '').toLowerCase().includes(query));
+            });
+
+            if (!filtered.length) {
+                container.innerHTML = `
+                    <div class="empty-bills">
+                        <div class="empty-bills-icon">🧾</div>
+                        <strong>${query ? 'No matching bills' : 'No bills saved yet'}</strong>
+                        <span>${query ? 'Try another bill number, customer name or mobile number.' : 'Generate a bill and it will appear here automatically.'}</span>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(bill => `
+                <div class="bill-history-card">
+                    <div class="bill-main">
+                        <div class="bill-topline">
+                            <span class="bill-number">Bill #${escapeHistoryText(bill.billNo)}</span>
+                            <span class="bill-date">${escapeHistoryText(formatHistoryDate(bill.date))}</span>
+                        </div>
+                        <div class="bill-customer">${escapeHistoryText(bill.name || 'Walk-in Customer')}</div>
+                        <div class="bill-details">
+                            ${escapeHistoryText(bill.phone || 'No mobile')} ·
+                            ${escapeHistoryText(bill.model || 'No model')}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="bill-total">₹${Number(bill.grandTotal || 0).toFixed(2)}</div>
+                        <div class="bill-card-actions">
+                            <button class="bill-card-btn" onclick="loadBillFromHistory('${bill.id}')">✏️ Modify</button>
+                            <button class="bill-card-btn" onclick="printFromHistory('${bill.id}')">🖨️ Print</button>
+                            <button class="bill-card-btn" onclick="downloadFromHistory('${bill.id}')">📥 Save PDF</button>
+                            <button class="bill-card-btn" style="color:#059669; border-color:#a7f3d0; background:#ecfdf5;" onclick="shareBillWhatsapp('${bill.id}')">📱 Share</button>
+                            ${window.isManageMode ? `<button class="bill-card-btn delete" onclick="deleteBillFromHistory('${bill.id}')">Delete</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        
+        function shareBillWhatsapp(id) {
+            const history = window.cloudBills && window.cloudBills.length > 0 ? window.cloudBills : getBillHistory();
+            const bill = history.find(x => x.id === id);
+            if (!bill) return;
+
+            // Load the bill to preview tab for screenshot
+            loadBillFromHistory(id);
+            switchTab('preview');
+            
+            var ind = document.getElementById('syncIndicator');
+            if(ind) {
+                ind.innerHTML = '<span style="display:inline-block; animation: spin 2s linear infinite;">⏳</span> Uploading Bill to Google Drive...';
+                ind.style.display = 'block';
+            }
+            if(typeof showToast === 'function') showToast("⏳ Generating & Uploading Bill Image...");
+
+            setTimeout(() => {
+                const sheet = document.getElementById('invoiceSheet');
+                html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false }).then(canvas => {
+                    const base64Data = canvas.toDataURL('image/png').split(',')[1];
+                    const filename = `Bill_${bill.billNo}_${bill.name || 'Customer'}.png`;
+                    
+                    const payload = {
+                        action: "upload_image",
+                        base64: base64Data,
+                        filename: filename
+                    };
+
+                    fetch(GOOGLE_SHEET_URL, {
+                        method: "POST",
+                        body: JSON.stringify(payload),
+                        headers: { "Content-Type": "text/plain;charset=utf-8" }
+                    })
+                    .then(res => res.json())
+                    .then(resData => {
+                        if(ind) {
+                            ind.style.display = 'none';
+                            ind.innerHTML = '<span style="display:inline-block; animation: spin 2s linear infinite;">🔄</span> Syncing live data from cloud...'; // Reset text
+                        }
+                        if (resData.url) {
+                            if(typeof showToast === 'function') showToast("✅ Uploaded! Opening WhatsApp...");
+                            let text = `*☁️ CLOUD GALLERY MEERUT*
+
+`;
+                            text += `Hello ${bill.name || 'Customer'},
+`;
+                            text += `Here is your E-Bill (No. ${bill.billNo}) for the ${bill.model || 'mobile'}.
+
+`;
+                            text += `*📥 View & Download your Bill here:*
+${resData.url}
+
+`;
+                            text += `Thank you for shopping with us!
+Follow us on Instagram: @cloudgallerymeerut`;
+                            
+                            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+                        } else {
+                            if(typeof showToast === 'function') showToast("❌ Failed to get Google Drive link.");
+                        }
+                    })
+                    .catch(err => {
+                        if(ind) ind.style.display = 'none';
+                        if(typeof showToast === 'function') showToast("❌ Cloud Upload Error!");
+                    });
+                });
+            }, 600);
+        }
+
+        function formatHistoryDate(value) {
+            if (!value) return 'No date';
+            const parts = String(value).split('-');
+            return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : value;
+        }
+
+        function escapeHistoryText(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({
+                '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+            }[ch]));
+        }
+
+        function loadBillFromHistory(id) {
+            const bill = getBillHistory().find(x => x.id === id);
+            if (!bill) return;
+
+            const set = (elemId, value) => {
+                const el = document.getElementById(elemId);
+                if (el) el.value = value ?? '';
+            };
+
+            set('inputBillNo', bill.billNo || '');
+            set('inputDate', bill.date || '');
+            set('inputName', bill.name);
+            set('inputAddress', bill.address);
+            set('inputPhone', bill.phone);
+            set('inputMobileModel', bill.model);
+            set('inputGb', bill.gb);
+            set('inputRate1', bill.rate1);
+            set('inputBattery', bill.battery);
+            set('inputRate2', bill.rate2);
+            set('inputDiscount', bill.discount);
+            set('inputImei1', bill.imei1);
+            set('inputImei2', bill.imei2);
+            set('inputSerial', bill.serialNumber);
+
+            document.querySelectorAll('input[name="inputBox"]').forEach(el => {
+                el.checked = el.value === bill.box;
+            });
+            
+            document.querySelectorAll('input[name="accMode"]').forEach(el => {
+                el.checked = false;
+                if (bill.accessories && bill.accessories.includes(el.value)) {
+                    el.checked = true;
+                }
+            });
+            
+            document.querySelectorAll('input[name="payMode"]').forEach(el => {
+                el.checked = Array.isArray(bill.payModes) && bill.payModes.includes(el.value);
+            });
+
+            calculateTotals();
+            updateInvoice();
+            saveToLocalStorage();
+            switchTab('form');
+        }
+
+        function deleteBillFromHistory(id) {
+            if (!confirm('Delete this saved bill?')) return;
+            const history = getBillHistory().filter(x => x.id !== id);
+            localStorage.setItem('cloudGalleryBillHistory', JSON.stringify(history));
+            
+            const bill = getBillHistory().find(x => x.id === id);
+            if (bill) {
+                var ind = document.getElementById('syncIndicator');
+                if(ind) ind.style.display = 'block';
+                
+                fetch(GOOGLE_SHEET_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ action: "delete", billNo: bill.billNo }),
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }
                 }).then(() => {
                     fetchCloudBills();
-                }).catch(e => console.error(e));
+                });
             } else {
                 renderBillHistory();
             }
