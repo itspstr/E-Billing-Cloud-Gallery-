@@ -77,8 +77,9 @@
             box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
         }
 
+        /* PC Layout Fix: Allows scrolling on the left, keeps right sticky */
         @media (min-width: 1024px) {
-            .mobile-tabs { display: flex; max-width: 460px; margin-bottom: 12px; }
+            .mobile-tabs { display: flex !important; max-width: 460px; margin-bottom: 12px; }
             .app-container {
                 display: grid;
                 grid-template-columns: 460px 1fr;
@@ -87,33 +88,32 @@
                 gap: 18px;
             }
             .mobile-tabs { grid-area: tabs; }
-            #formTabContent { grid-area: form; display: block !important; }
-            #previewTabContent, #billsTabContent { grid-column: 2; grid-row: 1 / span 2; }
-        }
-            .app-container {
-                display: grid;
-                grid-template-columns: 460px 1fr;
-                align-items: start;
-                gap: 18px;
+            #formTabContent { 
+                grid-area: form; 
+                display: block !important; 
             }
-            /* Reset min-height limitations so it can expand */
+            #previewTabContent, #billsTabContent { 
+                grid-column: 2; 
+                grid-row: 1 / span 2; 
+            }
+            
+            /* Layout Magic to fix the PC Cutoff */
+            .dashboard-panel {
+                position: relative !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            
+            .preview-container, .bills-container {
+                position: sticky !important;
+                top: 16px !important;
+                max-height: calc(100vh - 32px) !important;
+                overflow-y: auto !important;
+            }
+            
             .invoice-sheet-wrapper {
                 min-height: auto;
             }
-            .dashboard-panel, .preview-container, .bills-container {
-                max-height: none;
-                overflow: visible;
-            }
-        }
-            .app-container {
-                display: grid;
-                grid-template-columns: 460px 1fr;
-                align-items: start;
-                grid-template-areas: "tabs preview" "form preview";
-            }
-            .mobile-tabs { grid-area: tabs; }
-            #formTabContent { grid-area: form; display: block !important; }
-            #previewTabContent, #billsTabContent { grid-column: 2; grid-row: 1 / span 2; }
         }
 
         /* Control Panel */
@@ -735,16 +735,10 @@ body{
 .app-container{
   max-width:1500px;
   margin:0 auto;
-  display:grid;
-  grid-template-columns:minmax(360px,430px) minmax(0,1fr);
-  gap:18px;
-  align-items:start;
 }
 
 /* Mobile navigation */
 .mobile-tabs{
-  grid-column:1/-1;
-  display:flex;
   background:rgba(255,255,255,.9);
   backdrop-filter:blur(12px);
   padding:5px;
@@ -752,7 +746,6 @@ body{
   border-radius:14px;
   gap:5px;
   position:relative;
-  top:10px;
   z-index:100;
   box-shadow:0 8px 25px rgba(15,23,42,.08);
 }
@@ -776,7 +769,6 @@ body{
 }
 
 .dashboard-panel{
-  /* Removed sticky positioning to fix bottom cut-off issues on PC */
   overflow:visible;
 }
 
@@ -900,7 +892,7 @@ body{
 .btn-primary{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
 .btn-success{background:linear-gradient(135deg,#059669,#047857)}
 .btn-secondary{background:linear-gradient(135deg,#475569,#334155)}
-.btn-upload{background:linear-gradient(135deg,#0284c7,#0369a1)}
+.btn-upload{background:linear-gradient(135deg,#0284c7,#2563eb)}
 
 /* Preview */
 .preview-container{
@@ -1156,13 +1148,6 @@ body{
 .empty-bills strong{font-size:13px;color:#334155}
 .empty-bills span{font-size:11px;max-width:300px}
 
-@media(min-width:1024px){
-  #billsTabContent{
-    display:none;
-    grid-column:2;
-    min-height:calc(100vh - 32px);
-  }
-}
 @media(max-width:1023px){
   .bills-container{width:100%;padding:14px;border-radius:14px}
   .bills-header{align-items:flex-start}
@@ -1203,10 +1188,6 @@ body{
   box-shadow:0 18px 55px rgba(15,23,42,.08),0 2px 8px rgba(15,23,42,.04);
 }
 
-.dashboard-panel{
-  overflow:visible;
-}
-
 .dashboard-header{
   position:relative;
   overflow:hidden;
@@ -1244,8 +1225,6 @@ body{
 }
 
 .mobile-tabs{
-  padding:5px;
-  gap:5px;
   background:rgba(255,255,255,.78);
   border:1px solid rgba(255,255,255,.9);
   backdrop-filter:blur(18px);
@@ -1439,9 +1418,6 @@ body{
 }
 </style>
 
-
-
-
 </head>
 <body>
 
@@ -1497,10 +1473,10 @@ body{
 
             <div class="form-group">
                 <label style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>Mobile Number (Max 10 Digits)</span>
+                    <span>Mobile Number</span>
                     <button type="button" class="btn" style="background:#e0e7ff; color:#1e3a8a; border:1px solid #c7d2fe; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; height:auto; width:auto; min-height:auto;" onclick="importContact()">📱 Import</button>
                 </label>
-                <input type="text" id="inputPhone" placeholder="10-digit mobile no." maxlength="10" list="phoneList" oninput="validatePhone(this); updateInvoice(); saveToLocalStorage();" autocomplete="off" autocorrect="off" spellcheck="false">
+                <input type="text" id="inputPhone" placeholder="Enter mobile no." list="phoneList" oninput="updateInvoice(); saveToLocalStorage();" autocomplete="off" autocorrect="off" spellcheck="false">
                 <datalist id="phoneList"></datalist>
             </div>
 
@@ -1860,8 +1836,9 @@ body{
     </div>
 
     <script>
-
-        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw-DnEeDM9uyf3ym4vFconkxv_sWIjwpWfok_S2qqdxfhHv2O1hiQZcCTLZMw83JiqS/exec";
+        // UPDATE WITH YOUR APPS SCRIPT URL HERE!
+        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyPcpSlbccXZm7kr_p_DcfvXiYkuCy4x9205YE7j6Dh2llZFrei0vCaPryN01GarIpTQw/exec";
+        
         window.cloudBills = [];
         window.isManageMode = false;
 
@@ -1921,13 +1898,12 @@ body{
                 document.getElementById('formTabContent').style.display = 'block';
                 document.getElementById('tabFormBtn').classList.add('active');
             }
-
         });
 
         function switchTab(tabName) {
+            const formTab = document.getElementById('formTabContent');
             const previewTab = document.getElementById('previewTabContent');
             const billsTab = document.getElementById('billsTabContent');
-            const formTab = document.getElementById('formTabContent'); // For mobile
             const tabFormBtn = document.getElementById('tabFormBtn');
             const tabPreviewBtn = document.getElementById('tabPreviewBtn');
             const tabBillsBtn = document.getElementById('tabBillsBtn');
@@ -1938,7 +1914,7 @@ body{
             });
 
             if (window.innerWidth >= 1024) {
-                // DESKTOP BEHAVIOR: Form is always visible. Tabs switch the right panel.
+                // DESKTOP: Form is always visible. We just swap Preview and Bills on the right.
                 if (formTab) formTab.style.display = 'block';
                 
                 if (tabName === 'bills') {
@@ -1946,14 +1922,13 @@ body{
                     if(billsTab) billsTab.style.display = 'block';
                     if(tabBillsBtn) tabBillsBtn.classList.add('active');
                     renderBillHistory();
-                } else {
-                    // Default to preview
+                } else { // Default to preview
                     if(billsTab) billsTab.style.display = 'none';
                     if(previewTab) previewTab.style.display = 'block';
                     if(tabPreviewBtn) tabPreviewBtn.classList.add('active');
                 }
             } else {
-                // MOBILE BEHAVIOR: Standard 3 tabs
+                // MOBILE: Strictly show ONLY ONE tab at a time
                 [formTab, previewTab, billsTab].forEach(el => {
                     if (el) el.style.display = 'none';
                 });
@@ -1972,21 +1947,15 @@ body{
             }
         }
         
-        // Ensure layout corrects itself if window resizes
         window.addEventListener('resize', () => {
-            if(window.innerWidth >= 1024) {
-                document.getElementById('formTabContent').style.display = 'block';
-                if(document.getElementById('tabBillsBtn').classList.contains('active')) {
-                    document.getElementById('previewTabContent').style.display = 'none';
-                    document.getElementById('billsTabContent').style.display = 'block';
-                } else {
-                    document.getElementById('previewTabContent').style.display = 'block';
-                    document.getElementById('billsTabContent').style.display = 'none';
-                    document.getElementById('tabPreviewBtn').classList.add('active');
-                }
+            // Force layout recalculation on resize
+            const tabBillsBtn = document.getElementById('tabBillsBtn');
+            if (tabBillsBtn && tabBillsBtn.classList.contains('active')) {
+                switchTab('bills');
+            } else {
+                switchTab(window.innerWidth >= 1024 ? 'preview' : 'form');
             }
         });
-        
 
         function updateInvoice() {
             document.getElementById('previewBillNo').innerText = document.getElementById('inputBillNo').value || '308';
@@ -2160,30 +2129,30 @@ body{
                 rate1: bill.rate1, rate2: bill.rate2, discount: bill.discount
             };
             
-            fetch(GOOGLE_SHEET_URL, { method: "POST", body: JSON.stringify(payload) })
-            .catch(e => console.log(e));
+            // Bypass CORS restrictions for syncing logic
+            fetch(GOOGLE_SHEET_URL, { 
+                method: "POST", 
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payload) 
+            }).catch(e => console.log(e));
         }
 
         function triggerPrint() {
             saveBillToHistory();
             switchTab('preview');
             
-            // Force document body to allow overflow just for printing
-            document.body.style.overflow = 'visible';
-            
             setTimeout(() => { 
                 window.print(); 
                 
                 // Only increment counter AFTER the print dialog is closed or processing
                 setTimeout(() => {
-                    document.body.style.overflow = '';
                     let currentBill = parseInt(document.getElementById('inputBillNo').value) || 308;
                     document.getElementById('inputBillNo').value = currentBill + 1;
                     updateInvoice();
                     saveToLocalStorage();
                     if(typeof showToast === 'function') showToast("Bill Printed! Counter moved to " + (currentBill + 1));
                 }, 1000);
-            }, 600);
+            }, 1000); // Allow UI sufficient time to render before invoking print
         }
 
         function downloadInvoiceImage() {
@@ -2195,14 +2164,12 @@ body{
             // Switch to preview tab and force full width for perfect rendering
             switchTab('preview');
             
+            if(typeof showToast === 'function') showToast("⏳ Generating PDF Image...");
+            
             // Give the browser time to paint the UI
             setTimeout(() => {
-                // Store original styles to revert later
                 const originalTransform = sheet.style.transform;
-                const originalOverflow = document.body.style.overflow;
-                
                 sheet.style.transform = 'none'; // Ensure no scaling affects the canvas
-                document.body.style.overflow = 'visible'; // Ensure no container clipping
                 
                 html2canvas(sheet, { 
                     scale: 3, 
@@ -2212,9 +2179,7 @@ body{
                     windowWidth: sheet.scrollWidth,
                     windowHeight: sheet.scrollHeight
                 }).then(canvas => {
-                    // Revert styles
                     sheet.style.transform = originalTransform;
-                    document.body.style.overflow = originalOverflow;
                     
                     const link = document.createElement('a');
                     link.download = `Bill_${billNo}_${name}.png`;
@@ -2225,9 +2190,9 @@ body{
                     document.getElementById('inputBillNo').value = currentBill + 1;
                     updateInvoice();
                     saveToLocalStorage();
-                    if(typeof showToast === 'function') showToast("PDF Saved! Counter moved to " + (currentBill + 1));
+                    if(typeof showToast === 'function') showToast("✅ PDF Saved! Counter moved to " + (currentBill + 1));
                 });
-            }, 600);
+            }, 1000);
         }
 
         function printFromHistory(id) {
@@ -2327,7 +2292,7 @@ body{
             setTimeout(() => {
                 const sheet = document.getElementById('invoiceSheet');
                 html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false }).then(canvas => {
-                    const base64Data = canvas.toDataURL('image/png').split(',')[1];
+                    const base64Data = canvas.toDataURL('image/png');
                     const filename = `Bill_${bill.billNo}_${bill.name || 'Customer'}.png`;
                     
                     const payload = {
@@ -2338,31 +2303,22 @@ body{
 
                     fetch(GOOGLE_SHEET_URL, {
                         method: "POST",
-                        body: JSON.stringify(payload),
-                        headers: { "Content-Type": "text/plain;charset=utf-8" }
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify(payload)
                     })
                     .then(res => res.json())
                     .then(resData => {
                         if(ind) {
                             ind.style.display = 'none';
-                            ind.innerHTML = '<span style="display:inline-block; animation: spin 2s linear infinite;">🔄</span> Syncing live data from cloud...'; // Reset text
+                            ind.innerHTML = '<span style="display:inline-block; animation: spin 2s linear infinite;">🔄</span> Syncing live data from cloud...';
                         }
                         if (resData.url) {
                             if(typeof showToast === 'function') showToast("✅ Uploaded! Opening WhatsApp...");
-                            let text = `*☁️ CLOUD GALLERY MEERUT*
-
-`;
-                            text += `Hello ${bill.name || 'Customer'},
-`;
-                            text += `Here is your E-Bill (No. ${bill.billNo}) for the ${bill.model || 'mobile'}.
-
-`;
-                            text += `*📥 View & Download your Bill here:*
-${resData.url}
-
-`;
-                            text += `Thank you for shopping with us!
-Follow us on Instagram: @cloudgallerymeerut`;
+                            let text = `*☁️ CLOUD GALLERY MEERUT*\n\n`;
+                            text += `Hello ${bill.name || 'Customer'},\n`;
+                            text += `Here is your E-Bill (No. ${bill.billNo}) for the ${bill.model || 'mobile'}.\n\n`;
+                            text += `*📥 View & Download your Bill here:*\n${resData.url}\n\n`;
+                            text += `Thank you for shopping with us!\n`;
                             
                             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
                         } else {
@@ -2374,7 +2330,7 @@ Follow us on Instagram: @cloudgallerymeerut`;
                         if(typeof showToast === 'function') showToast("❌ Cloud Upload Error!");
                     });
                 });
-            }, 600);
+            }, 1000);
         }
 
         function formatHistoryDate(value) {
@@ -2446,8 +2402,8 @@ Follow us on Instagram: @cloudgallerymeerut`;
                 
                 fetch(GOOGLE_SHEET_URL, { 
                     method: "POST", 
-                    body: JSON.stringify({ action: "delete", billNo: bill.billNo }),
-                    headers: { "Content-Type": "text/plain;charset=utf-8" }
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action: "delete", billNo: bill.billNo })
                 }).then(() => {
                     fetchCloudBills();
                 });
