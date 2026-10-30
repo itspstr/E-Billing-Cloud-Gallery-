@@ -481,6 +481,22 @@
                 transform-origin: top left;
             }
         }
+    
+        .version-badge {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #dc2626;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            z-index: 9999;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+
     </style>
 
 <style id="professional-ui-upgrade">
@@ -1232,6 +1248,7 @@ body{
 
 </head>
 <body>
+    <div class="version-badge">v2.1</div>
 
     <div class="app-container">
         <!-- Mobile Tab Navigation -->
@@ -1676,40 +1693,36 @@ body{
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('inputDate').value = today;
-            loadFromLocalStorage();
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('item')) document.getElementById('inputMobileModel').value = urlParams.get('item');
-            if (urlParams.has('imei1')) document.getElementById('inputImei1').value = urlParams.get('imei1');
-            if (urlParams.has('imei2')) document.getElementById('inputImei2').value = urlParams.get('imei2');
-            if (urlParams.has('serial')) document.getElementById('inputSerial').value = urlParams.get('serial');
-            if (urlParams.has('imei')) {
-                let imeiParam = urlParams.get('imei');
-                if (imeiParam.length === 15 && !isNaN(imeiParam)) {
-                    document.getElementById('inputImei1').value = imeiParam;
-                } else {
-                    document.getElementById('inputSerial').value = imeiParam;
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('inputDate').value = today;
+                loadFromLocalStorage();
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('item')) document.getElementById('inputMobileModel').value = urlParams.get('item');
+                if (urlParams.has('imei1')) document.getElementById('inputImei1').value = urlParams.get('imei1');
+                if (urlParams.has('imei2')) document.getElementById('inputImei2').value = urlParams.get('imei2');
+                if (urlParams.has('serial')) document.getElementById('inputSerial').value = urlParams.get('serial');
+                if (urlParams.has('imei')) {
+                    let imeiParam = urlParams.get('imei');
+                    if (imeiParam.length === 15 && !isNaN(imeiParam)) {
+                        document.getElementById('inputImei1').value = imeiParam;
+                    } else {
+                        document.getElementById('inputSerial').value = imeiParam;
+                    }
                 }
-            }
-            if (urlParams.has('acc')) document.getElementById('inputAccessories').value = urlParams.get('acc');
+                if (urlParams.has('acc')) document.getElementById('inputAccessories').value = urlParams.get('acc');
 
-            
-            updateInvoice();
-            calculateTotals();
-            fetchCloudBills();
-            
-            // Set initial tab state based on screen size
-            if(window.innerWidth >= 1024) {
-                document.getElementById('formTabContent').style.display = 'block';
-                document.getElementById('previewTabContent').style.display = 'block';
-                document.getElementById('tabPreviewBtn').classList.add('active');
-            } else {
-                document.getElementById('formTabContent').style.display = 'block';
-                document.getElementById('tabFormBtn').classList.add('active');
-            }
-
+                updateInvoice();
+                calculateTotals();
+                fetchCloudBills();
+                
+                if(window.innerWidth >= 1024) {
+                    switchTab('preview');
+                } else {
+                    switchTab('form');
+                }
+            } catch(e) { console.error("Initialization error:", e); }
         });
 
         
