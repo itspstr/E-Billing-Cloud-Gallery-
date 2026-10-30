@@ -78,12 +78,42 @@
         }
 
         @media (min-width: 1024px) {
-            .mobile-tabs { display: none; }
+            .mobile-tabs { display: flex; max-width: 460px; margin-bottom: 12px; }
             .app-container {
                 display: grid;
                 grid-template-columns: 460px 1fr;
                 align-items: start;
+                grid-template-areas: "tabs preview" "form preview";
+                gap: 18px;
             }
+            .mobile-tabs { grid-area: tabs; }
+            #formTabContent { grid-area: form; display: block !important; }
+            #previewTabContent, #billsTabContent { grid-column: 2; grid-row: 1 / span 2; }
+        }
+            .app-container {
+                display: grid;
+                grid-template-columns: 460px 1fr;
+                align-items: start;
+                gap: 18px;
+            }
+            /* Reset min-height limitations so it can expand */
+            .invoice-sheet-wrapper {
+                min-height: auto;
+            }
+            .dashboard-panel, .preview-container, .bills-container {
+                max-height: none;
+                overflow: visible;
+            }
+        }
+            .app-container {
+                display: grid;
+                grid-template-columns: 460px 1fr;
+                align-items: start;
+                grid-template-areas: "tabs preview" "form preview";
+            }
+            .mobile-tabs { grid-area: tabs; }
+            #formTabContent { grid-area: form; display: block !important; }
+            #previewTabContent, #billsTabContent { grid-column: 2; grid-row: 1 / span 2; }
         }
 
         /* Control Panel */
@@ -721,7 +751,7 @@ body{
   border:1px solid rgba(226,232,240,.9);
   border-radius:14px;
   gap:5px;
-  position:sticky;
+  position:relative;
   top:10px;
   z-index:100;
   box-shadow:0 8px 25px rgba(15,23,42,.08);
@@ -746,8 +776,7 @@ body{
 }
 
 .dashboard-panel{
-  position:relative;
-  height:max-content;
+  /* Removed sticky positioning to fix bottom cut-off issues on PC */
   overflow:visible;
 }
 
@@ -877,14 +906,7 @@ body{
 .preview-container{
   min-width:0;
   padding:20px;
-  position:sticky;
-  top:16px;
-  max-height:calc(100vh - 32px);
-  overflow:auto;
 }
-.preview-container::-webkit-scrollbar { width: 7px; }
-.preview-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
-
 .preview-header-bar{
   margin-bottom:16px;
   padding:0 2px 13px;
@@ -1610,7 +1632,7 @@ body{
         </div>
 
         <!-- My Bills History -->
-        <div class="bills-container tab-content hidden-mobile" id="billsTabContent">
+        <div class="bills-container tab-content" style="display:none;" id="billsTabContent">
             <div class="bills-header">
                 <div>
                     <div class="bills-eyebrow">BILLING HISTORY</div>
@@ -1644,7 +1666,7 @@ body{
         </div>
 
         <!-- Live Preview Area -->
-        <div class="preview-container tab-content hidden-mobile" id="previewTabContent">
+        <div class="preview-container tab-content" style="display:none;" id="previewTabContent">
             <div class="preview-header-bar">
                 <h3>Live Invoice Preview (A4 Format)</h3>
                 <span class="status-badge" style="background:#ecfdf5; color:#047857; border-color:#bbf7d0;">Ready to Print</span>
@@ -1839,7 +1861,7 @@ body{
 
     <script>
 
-        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyPcpSlbccXZm7kr_p_DcfvXiYkuCy4x9205YE7j6Dh2llZFrei0vCaPryN01GarIpTQw/exec";
+        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw-DnEeDM9uyf3ym4vFconkxv_sWIjwpWfok_S2qqdxfhHv2O1hiQZcCTLZMw83JiqS/exec";
         window.cloudBills = [];
         window.isManageMode = false;
 
@@ -1885,38 +1907,86 @@ body{
             }
             if (urlParams.has('acc')) document.getElementById('inputAccessories').value = urlParams.get('acc');
 
+            
             updateInvoice();
             calculateTotals();
             fetchCloudBills();
+            
+            // Set initial tab state based on screen size
+            if(window.innerWidth >= 1024) {
+                document.getElementById('formTabContent').style.display = 'block';
+                document.getElementById('previewTabContent').style.display = 'block';
+                document.getElementById('tabPreviewBtn').classList.add('active');
+            } else {
+                document.getElementById('formTabContent').style.display = 'block';
+                document.getElementById('tabFormBtn').classList.add('active');
+            }
+
         });
 
         function switchTab(tabName) {
-            const formTab = document.getElementById('formTabContent');
             const previewTab = document.getElementById('previewTabContent');
             const billsTab = document.getElementById('billsTabContent');
+            const formTab = document.getElementById('formTabContent'); // For mobile
             const tabFormBtn = document.getElementById('tabFormBtn');
             const tabPreviewBtn = document.getElementById('tabPreviewBtn');
             const tabBillsBtn = document.getElementById('tabBillsBtn');
 
-            [formTab, previewTab, billsTab].forEach(el => {
-                if (el) el.classList.add('hidden-mobile');
-            });
+            // Remove active classes
             [tabFormBtn, tabPreviewBtn, tabBillsBtn].forEach(el => {
                 if (el) el.classList.remove('active');
             });
 
-            if (tabName === 'form') {
-                formTab.classList.remove('hidden-mobile');
-                tabFormBtn.classList.add('active');
-            } else if (tabName === 'preview') {
-                previewTab.classList.remove('hidden-mobile');
-                tabPreviewBtn.classList.add('active');
-            } else if (tabName === 'bills') {
-                billsTab.classList.remove('hidden-mobile');
-                tabBillsBtn.classList.add('active');
-                renderBillHistory();
+            if (window.innerWidth >= 1024) {
+                // DESKTOP BEHAVIOR: Form is always visible. Tabs switch the right panel.
+                if (formTab) formTab.style.display = 'block';
+                
+                if (tabName === 'bills') {
+                    if(previewTab) previewTab.style.display = 'none';
+                    if(billsTab) billsTab.style.display = 'block';
+                    if(tabBillsBtn) tabBillsBtn.classList.add('active');
+                    renderBillHistory();
+                } else {
+                    // Default to preview
+                    if(billsTab) billsTab.style.display = 'none';
+                    if(previewTab) previewTab.style.display = 'block';
+                    if(tabPreviewBtn) tabPreviewBtn.classList.add('active');
+                }
+            } else {
+                // MOBILE BEHAVIOR: Standard 3 tabs
+                [formTab, previewTab, billsTab].forEach(el => {
+                    if (el) el.style.display = 'none';
+                });
+                
+                if (tabName === 'form') {
+                    if(formTab) formTab.style.display = 'block';
+                    if(tabFormBtn) tabFormBtn.classList.add('active');
+                } else if (tabName === 'preview') {
+                    if(previewTab) previewTab.style.display = 'block';
+                    if(tabPreviewBtn) tabPreviewBtn.classList.add('active');
+                } else if (tabName === 'bills') {
+                    if(billsTab) billsTab.style.display = 'block';
+                    if(tabBillsBtn) tabBillsBtn.classList.add('active');
+                    renderBillHistory();
+                }
             }
         }
+        
+        // Ensure layout corrects itself if window resizes
+        window.addEventListener('resize', () => {
+            if(window.innerWidth >= 1024) {
+                document.getElementById('formTabContent').style.display = 'block';
+                if(document.getElementById('tabBillsBtn').classList.contains('active')) {
+                    document.getElementById('previewTabContent').style.display = 'none';
+                    document.getElementById('billsTabContent').style.display = 'block';
+                } else {
+                    document.getElementById('previewTabContent').style.display = 'block';
+                    document.getElementById('billsTabContent').style.display = 'none';
+                    document.getElementById('tabPreviewBtn').classList.add('active');
+                }
+            }
+        });
+        
 
         function updateInvoice() {
             document.getElementById('previewBillNo').innerText = document.getElementById('inputBillNo').value || '308';
@@ -2097,14 +2167,23 @@ body{
         function triggerPrint() {
             saveBillToHistory();
             switchTab('preview');
+            
+            // Force document body to allow overflow just for printing
+            document.body.style.overflow = 'visible';
+            
             setTimeout(() => { 
                 window.print(); 
-                let currentBill = parseInt(document.getElementById('inputBillNo').value) || 308;
-                document.getElementById('inputBillNo').value = currentBill + 1;
-                updateInvoice();
-                saveToLocalStorage();
-                if(typeof showToast === 'function') showToast("Bill Printed! Counter moved to " + (currentBill + 1));
-            }, 500);
+                
+                // Only increment counter AFTER the print dialog is closed or processing
+                setTimeout(() => {
+                    document.body.style.overflow = '';
+                    let currentBill = parseInt(document.getElementById('inputBillNo').value) || 308;
+                    document.getElementById('inputBillNo').value = currentBill + 1;
+                    updateInvoice();
+                    saveToLocalStorage();
+                    if(typeof showToast === 'function') showToast("Bill Printed! Counter moved to " + (currentBill + 1));
+                }, 1000);
+            }, 600);
         }
 
         function downloadInvoiceImage() {
@@ -2113,9 +2192,30 @@ body{
             const billNo = document.getElementById('inputBillNo').value || '308';
             const name = document.getElementById('inputName').value || 'Customer';
             
+            // Switch to preview tab and force full width for perfect rendering
             switchTab('preview');
+            
+            // Give the browser time to paint the UI
             setTimeout(() => {
-                html2canvas(sheet, { scale: 3, useCORS: true, backgroundColor: '#ffffff', logging: false }).then(canvas => {
+                // Store original styles to revert later
+                const originalTransform = sheet.style.transform;
+                const originalOverflow = document.body.style.overflow;
+                
+                sheet.style.transform = 'none'; // Ensure no scaling affects the canvas
+                document.body.style.overflow = 'visible'; // Ensure no container clipping
+                
+                html2canvas(sheet, { 
+                    scale: 3, 
+                    useCORS: true, 
+                    backgroundColor: '#ffffff', 
+                    logging: false,
+                    windowWidth: sheet.scrollWidth,
+                    windowHeight: sheet.scrollHeight
+                }).then(canvas => {
+                    // Revert styles
+                    sheet.style.transform = originalTransform;
+                    document.body.style.overflow = originalOverflow;
+                    
                     const link = document.createElement('a');
                     link.download = `Bill_${billNo}_${name}.png`;
                     link.href = canvas.toDataURL('image/png', 1.0);
@@ -2127,7 +2227,7 @@ body{
                     saveToLocalStorage();
                     if(typeof showToast === 'function') showToast("PDF Saved! Counter moved to " + (currentBill + 1));
                 });
-            }, 500);
+            }, 600);
         }
 
         function printFromHistory(id) {
@@ -2213,34 +2313,42 @@ body{
             const bill = history.find(x => x.id === id);
             if (!bill) return;
 
-            // Switch to preview tab so html2canvas works
+            // Load the bill to preview tab for screenshot
+            loadBillFromHistory(id);
             switchTab('preview');
             
             var ind = document.getElementById('syncIndicator');
             if(ind) {
-                ind.innerHTML = '<span style="display:inline-block; animation: spin 2s linear infinite;">🔄</span> Generating & Uploading Bill to Cloud...';
+                ind.innerHTML = '<span style="display:inline-block; animation: spin 2s linear infinite;">⏳</span> Uploading Bill to Google Drive...';
                 ind.style.display = 'block';
             }
+            if(typeof showToast === 'function') showToast("⏳ Generating & Uploading Bill Image...");
 
             setTimeout(() => {
                 const sheet = document.getElementById('invoiceSheet');
                 html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false }).then(canvas => {
-                    const base64Data = canvas.toDataURL('image/png', 1.0);
+                    const base64Data = canvas.toDataURL('image/png').split(',')[1];
                     const filename = `Bill_${bill.billNo}_${bill.name || 'Customer'}.png`;
+                    
+                    const payload = {
+                        action: "upload_image",
+                        base64: base64Data,
+                        filename: filename
+                    };
 
                     fetch(GOOGLE_SHEET_URL, {
                         method: "POST",
-                        body: JSON.stringify({
-                            action: "upload_image",
-                            filename: filename,
-                            base64: base64Data
-                        }),
+                        body: JSON.stringify(payload),
                         headers: { "Content-Type": "text/plain;charset=utf-8" }
                     })
                     .then(res => res.json())
-                    .then(data => {
-                        if (ind) ind.style.display = 'none';
-                        if (data && data.url) {
+                    .then(resData => {
+                        if(ind) {
+                            ind.style.display = 'none';
+                            ind.innerHTML = '<span style="display:inline-block; animation: spin 2s linear infinite;">🔄</span> Syncing live data from cloud...'; // Reset text
+                        }
+                        if (resData.url) {
+                            if(typeof showToast === 'function') showToast("✅ Uploaded! Opening WhatsApp...");
                             let text = `*☁️ CLOUD GALLERY MEERUT*
 
 `;
@@ -2250,24 +2358,23 @@ body{
 
 `;
                             text += `*📥 View & Download your Bill here:*
-${data.url}
+${resData.url}
 
 `;
                             text += `Thank you for shopping with us!
-`;
-                            text += `Follow us on Instagram: @cloudgallerymeerut`;
-
+Follow us on Instagram: @cloudgallerymeerut`;
+                            
                             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
                         } else {
-                            if(typeof showToast === 'function') showToast("⚠️ Failed to upload bill to cloud.");
+                            if(typeof showToast === 'function') showToast("❌ Failed to get Google Drive link.");
                         }
                     })
-                    .catch(e => {
-                        if (ind) ind.style.display = 'none';
-                        if(typeof showToast === 'function') showToast("⚠️ Error uploading bill. Check connection.");
+                    .catch(err => {
+                        if(ind) ind.style.display = 'none';
+                        if(typeof showToast === 'function') showToast("❌ Cloud Upload Error!");
                     });
                 });
-            }, 500);
+            }, 600);
         }
 
         function formatHistoryDate(value) {
