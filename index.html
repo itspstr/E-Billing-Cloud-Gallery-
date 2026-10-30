@@ -1618,6 +1618,12 @@ body{
                 </div>
             </div>
 
+            
+            <div id="syncIndicator" style="display:none; text-align:center; padding:10px 15px; background:#eef2ff; color:#1e3a8a; font-weight:800; border-radius:10px; margin-bottom:15px; font-size:13px; border:1px solid #c7d2fe; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                <span style="display:inline-block; animation: spin 2s linear infinite;">🔄</span> Syncing live data from cloud...
+            </div>
+            <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+            
             <div class="bills-search-wrap">
                 <span>⌕</span>
                 <input type="search" id="billHistorySearch" placeholder="Search bill no., customer, mobile or model..." oninput="renderBillHistory()">
@@ -1828,7 +1834,7 @@ body{
 
     <script>
 
-        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw_LjADRohdv0DmBpfgkr-0wBJzqcAmiFOr3KyKbBjkclW6Mezyxk8pNxJNRasVlkMN/exec";
+        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw-DnEeDM9uyf3ym4vFconkxv_sWIjwpWfok_S2qqdxfhHv2O1hiQZcCTLZMw83JiqS/exec";
         window.cloudBills = [];
         window.isManageMode = false;
 
@@ -1981,6 +1987,9 @@ body{
         }
 
         function fetchCloudBills() {
+            var ind = document.getElementById('syncIndicator');
+            if(ind) ind.style.display = 'block';
+            
             fetch(GOOGLE_SHEET_URL + "?t=" + new Date().getTime())
                 .then(res => res.json())
                 .then(data => {
@@ -2002,6 +2011,7 @@ body{
                         window.cloudBills = history; 
                         renderBillHistory();
                     }
+                    if(ind) ind.style.display = 'none';
                 })
                 .catch(e => {
                     let currentBill = document.getElementById('inputBillNo').value;
@@ -2009,6 +2019,7 @@ body{
                          document.getElementById('inputBillNo').value = "308";
                          updateInvoice();
                     }
+                    if(ind) ind.style.display = 'none';
                 });
         }
         
@@ -2183,11 +2194,46 @@ body{
                             <button class="bill-card-btn" onclick="loadBillFromHistory('${bill.id}')">✏️ Modify</button>
                             <button class="bill-card-btn" onclick="printFromHistory('${bill.id}')">🖨️ Print</button>
                             <button class="bill-card-btn" onclick="downloadFromHistory('${bill.id}')">📥 Save PDF</button>
+                            <button class="bill-card-btn" style="color:#059669; border-color:#a7f3d0; background:#ecfdf5;" onclick="shareBillWhatsapp('${bill.id}')">📱 Share</button>
                             ${window.isManageMode ? `<button class="bill-card-btn delete" onclick="deleteBillFromHistory('${bill.id}')">Delete</button>` : ''}
                         </div>
                     </div>
                 </div>
             `).join('');
+        }
+
+        
+        function shareBillWhatsapp(id) {
+            const history = window.cloudBills && window.cloudBills.length > 0 ? window.cloudBills : getBillHistory();
+            const bill = history.find(x => x.id === id);
+            if (!bill) return;
+
+            let text = `*☁️ CLOUD GALLERY MEERUT*\n`;
+            text += `_🧾 E-Bill Details_\n\n`;
+            text += `*Bill No:* ${bill.billNo}\n`;
+            text += `*Date:* ${formatHistoryDate(bill.date)}\n`;
+            text += `*Customer Name:* ${bill.name || 'Walk-in'}\n`;
+            if (bill.phone) text += `*Mobile:* ${bill.phone}\n`;
+            if (bill.address) text += `*Address:* ${bill.address}\n\n`;
+            
+            text += `*📱 Mobile Details:* ${bill.model || 'N/A'}\n`;
+            if (bill.gb) text += `*Storage:* ${bill.gb}\n`;
+            if (bill.battery) text += `*Battery Health:* ${bill.battery}\n`;
+            
+            text += `*📦 Box Included:* ${bill.box || 'No'}\n`;
+            if (bill.accessories) text += `*Accessories:* ${bill.accessories}\n`;
+            
+            if (bill.imei1) text += `*IMEI 1:* ${bill.imei1}\n`;
+            if (bill.imei2) text += `*IMEI 2:* ${bill.imei2}\n`;
+            if (bill.serialNumber) text += `*Serial No:* ${bill.serialNumber}\n\n`;
+            
+            text += `*💰 Grand Total:* ₹${Number(bill.grandTotal || 0).toFixed(2)}\n`;
+            if (bill.payModes && bill.payModes.length > 0) text += `*Payment Mode:* ${bill.payModes.join(', ')}\n\n`;
+            
+            text += `Thank you for shopping with us!\n`;
+            text += `Follow us on Instagram: @cloudgallerymeerut`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
         }
 
         function formatHistoryDate(value) {
@@ -2254,10 +2300,16 @@ body{
             
             const bill = getBillHistory().find(x => x.id === id);
             if (bill) {
+                var ind = document.getElementById('syncIndicator');
+                if(ind) ind.style.display = 'block';
+                
                 fetch(GOOGLE_SHEET_URL, { 
                     method: "POST", 
-                    body: JSON.stringify({ action: "delete", billNo: bill.billNo })
-                }).then(() => fetchCloudBills());
+                    body: JSON.stringify({ action: "delete", billNo: bill.billNo }),
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }
+                }).then(() => {
+                    fetchCloudBills();
+                });
             } else {
                 renderBillHistory();
             }
