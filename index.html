@@ -78,7 +78,7 @@
         }
 
         @media (min-width: 1024px) {
-            .mobile-tabs { display: flex !important; max-width: 460px; margin-bottom: 12px; }
+            .mobile-tabs { display: flex; max-width: 460px; margin-bottom: 12px; }
             .app-container {
                 display: grid;
                 grid-template-columns: 460px 1fr;
@@ -86,6 +86,17 @@
                 grid-template-areas: "tabs preview" "form preview";
                 gap: 18px;
             }
+            .mobile-tabs { grid-area: tabs; }
+            #formTabContent { grid-area: form; display: block !important; }
+            #previewTabContent, #billsTabContent { grid-column: 2; grid-row: 1 / span 2; }
+        }
+            .app-container {
+                display: grid;
+                grid-template-columns: 460px 1fr;
+                align-items: start;
+                gap: 18px;
+            }
+            /* Reset min-height limitations so it can expand */
             .invoice-sheet-wrapper {
                 min-height: auto;
             }
@@ -93,9 +104,222 @@
                 max-height: none;
                 overflow: visible;
             }
+        }
+            .app-container {
+                display: grid;
+                grid-template-columns: 460px 1fr;
+                align-items: start;
+                grid-template-areas: "tabs preview" "form preview";
+            }
             .mobile-tabs { grid-area: tabs; }
             #formTabContent { grid-area: form; display: block !important; }
             #previewTabContent, #billsTabContent { grid-column: 2; grid-row: 1 / span 2; }
+        }
+
+        /* Control Panel */
+        .dashboard-panel {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-subtle);
+            border: 1px solid var(--border-light);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 8px;
+        }
+
+        .dashboard-header h2 {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .status-badge {
+            font-size: 10px;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .form-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin: 12px 0 6px 0;
+            border-left: 3px solid var(--primary);
+            padding-left: 6px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            outline: none;
+            background: #fff;
+            color: var(--text-main);
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .checkbox-grid {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .checkbox-grid label {
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            background: #f8fafc;
+            padding: 7px 8px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border-color);
+            flex: 1;
+            min-width: 70px;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .checkbox-grid input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+
+        .compact-radio-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 5px;
+            justify-content: flex-start;
+        }
+
+        .compact-radio-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #f8fafc;
+            padding: 4px 10px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            width: auto;
+        }
+
+        .compact-radio-group input[type="radio"] {
+            accent-color: var(--primary);
+            width: 12px;
+            height: 12px;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* Action Buttons Box */
+        .sidebar-actions {
+            margin-top: 16px;
+            border-top: 2px solid var(--border-light);
+            padding-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        .btn-success { background-color: #059669; color: white; }
+        .btn-success:hover { background-color: #047857; }
+        .btn-secondary { background-color: #475569; color: white; }
+        .btn-upload { background-color: #0284c7; color: white; }
+
+        /* Preview Area */
+        .preview-container {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-subtle);
+            border: 1px solid var(--border-light);
+            width: 100%;
+        }
+
+        .preview-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 8px;
+        }
+
+        .preview-header-bar h3 {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .invoice-sheet-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 8px;
+        }
+
+        .tab-content {
+            display: block;
         }
         @media (max-width: 1023px) {
             .tab-content.hidden-mobile {
@@ -1408,7 +1632,7 @@ body{
         </div>
 
         <!-- My Bills History -->
-        <div class="bills-container tab-content" id="billsTabContent">
+        <div class="bills-container tab-content" style="display:none;" id="billsTabContent">
             <div class="bills-header">
                 <div>
                     <div class="bills-eyebrow">BILLING HISTORY</div>
@@ -1442,7 +1666,7 @@ body{
         </div>
 
         <!-- Live Preview Area -->
-        <div class="preview-container tab-content" id="previewTabContent">
+        <div class="preview-container tab-content" style="display:none;" id="previewTabContent">
             <div class="preview-header-bar">
                 <h3>Live Invoice Preview (A4 Format)</h3>
                 <span class="status-badge" style="background:#ecfdf5; color:#047857; border-color:#bbf7d0;">Ready to Print</span>
@@ -1637,7 +1861,7 @@ body{
 
     <script>
 
-        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw-DnEeDM9uyf3ym4vFconkxv_sWIjwpWfok_S2qqdxfhHv2O1hiQZcCTLZMw83JiqS/exec";
+        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbwLRbBapq-5ALTDw3mWXjCTAqzERrWnWYydtXCqw5Wxt-1U8CQnaNbaoMTRE_U_9iVt/exec";
         window.cloudBills = [];
         window.isManageMode = false;
 
@@ -1701,9 +1925,9 @@ body{
         });
 
         function switchTab(tabName) {
-            const formTab = document.getElementById('formTabContent');
             const previewTab = document.getElementById('previewTabContent');
             const billsTab = document.getElementById('billsTabContent');
+            const formTab = document.getElementById('formTabContent'); // For mobile
             const tabFormBtn = document.getElementById('tabFormBtn');
             const tabPreviewBtn = document.getElementById('tabPreviewBtn');
             const tabBillsBtn = document.getElementById('tabBillsBtn');
@@ -1714,7 +1938,7 @@ body{
             });
 
             if (window.innerWidth >= 1024) {
-                // DESKTOP: Form is always visible. We just swap Preview and Bills on the right.
+                // DESKTOP BEHAVIOR: Form is always visible. Tabs switch the right panel.
                 if (formTab) formTab.style.display = 'block';
                 
                 if (tabName === 'bills') {
@@ -1722,13 +1946,14 @@ body{
                     if(billsTab) billsTab.style.display = 'block';
                     if(tabBillsBtn) tabBillsBtn.classList.add('active');
                     renderBillHistory();
-                } else { // Default to preview
+                } else {
+                    // Default to preview
                     if(billsTab) billsTab.style.display = 'none';
                     if(previewTab) previewTab.style.display = 'block';
                     if(tabPreviewBtn) tabPreviewBtn.classList.add('active');
                 }
             } else {
-                // MOBILE: Strictly show ONLY ONE tab at a time
+                // MOBILE BEHAVIOR: Standard 3 tabs
                 [formTab, previewTab, billsTab].forEach(el => {
                     if (el) el.style.display = 'none';
                 });
@@ -1747,15 +1972,22 @@ body{
             }
         }
         
+        // Ensure layout corrects itself if window resizes
         window.addEventListener('resize', () => {
-            // Force layout recalculation on resize
-            const tabBillsBtn = document.getElementById('tabBillsBtn');
-            if (tabBillsBtn && tabBillsBtn.classList.contains('active')) {
-                switchTab('bills');
-            } else {
-                switchTab(window.innerWidth >= 1024 ? 'preview' : 'form');
+            if(window.innerWidth >= 1024) {
+                document.getElementById('formTabContent').style.display = 'block';
+                if(document.getElementById('tabBillsBtn').classList.contains('active')) {
+                    document.getElementById('previewTabContent').style.display = 'none';
+                    document.getElementById('billsTabContent').style.display = 'block';
+                } else {
+                    document.getElementById('previewTabContent').style.display = 'block';
+                    document.getElementById('billsTabContent').style.display = 'none';
+                    document.getElementById('tabPreviewBtn').classList.add('active');
+                }
             }
         });
+        
+
         function updateInvoice() {
             document.getElementById('previewBillNo').innerText = document.getElementById('inputBillNo').value || '308';
             document.getElementById('previewDate').innerText = document.getElementById('inputDate').value;
@@ -1928,16 +2160,8 @@ body{
                 rate1: bill.rate1, rate2: bill.rate2, discount: bill.discount
             };
             
-            fetch(GOOGLE_SHEET_URL, { 
-                method: "POST", 
-                mode: "no-cors", // Bypasses browser CORS blocks entirely
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                // Data pushed successfully
-            }).catch(e => console.log(e));
+            fetch(GOOGLE_SHEET_URL, { method: "POST", body: JSON.stringify(payload) })
+            .catch(e => console.log(e));
         }
 
         function triggerPrint() {
@@ -2222,9 +2446,8 @@ Follow us on Instagram: @cloudgallerymeerut`;
                 
                 fetch(GOOGLE_SHEET_URL, { 
                     method: "POST", 
-                    mode: "no-cors",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: "delete", billNo: bill.billNo })
+                    body: JSON.stringify({ action: "delete", billNo: bill.billNo }),
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }
                 }).then(() => {
                     fetchCloudBills();
                 });
